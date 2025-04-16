@@ -104,3 +104,63 @@ export const FetchCurrentUser = async (
     console.log("Erro ao buscar usuário:", error);
   }
 };
+
+export const FetchReserveClassroom = async (
+  id: string,
+  date: Date,
+  request: ReturnType<typeof useApi>["request"]
+) => {
+  try {
+    const data = await request(`${URL_BASE}/reserve/`, {
+      method: "POST",
+      headers: {
+        authorization: "Bearer " + localStorage.getItem("token"),
+      },
+      body: {
+        roomId: id,
+        date: date.toISOString(),
+      },
+    });
+
+    return data;
+  } catch (error) {
+    console.log("Erro ao reservar sala:", error);
+  }
+};
+
+export const FetchAllReservesInDate = async (id: string, date: string) => {
+  try {
+    const response = await fetch(
+      `${URL_BASE}/reserve/search-from-date/${id}/${date}`,
+      {
+        method: "GET",
+        headers: {
+          authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    return data;
+  } catch (error) {
+    console.log("Erro ao buscar reservas:", error);
+  }
+};
+
+export const FetchByIdGroupByRoom = async (id: string) => {
+  try {
+    const response = await fetch(`${URL_BASE}/time-class/by-room/${id}`, {
+      method: "GET",
+      headers: {
+        authorization: "Bearer " + localStorage.getItem("token"),
+      },
+    });
+
+    const data = await response.json();
+
+    return data;
+  } catch (error) {
+    console.log("Erro ao buscar reservas:", error);
+  }
+};

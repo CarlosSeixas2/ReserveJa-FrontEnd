@@ -1,46 +1,38 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/auth-context";
+import { CgProfile } from "react-icons/cg";
 
 const Navbar = () => {
   const { isAuthenticated, user } = useAuth();
 
-  console.log("isAuthenticated", isAuthenticated);
-  console.log("user", user);
-
   return (
     <header className="flex justify-between items-center mb-10">
-      <Link
-        to={{
-          pathname: "/",
-        }}
-      >
+      <Link to="/">
         <img src="/src/assets/logo.svg" alt="logo" className="h-10" />
       </Link>
-      <nav className="flex gap-8 items-center text-sm font-medium text-gray-700">
-        <Link to="#" className="hover:text-indigo-600 transition">
-          Reservas
-        </Link>
-        <Link to="#" className="hover:text-indigo-600 transition">
-          Liberar Salas
-        </Link>
+
+      <nav className="flex gap-6 items-center text-sm font-medium text-gray-700">
+        {isAuthenticated && (
+          <Link to="#" className="hover:text-indigo-600 transition">
+            Reservas
+          </Link>
+        )}
+
+        {isAuthenticated && user?.tipo === "Professor" && (
+          <Link to="#" className="hover:text-indigo-600 transition">
+            Liberar Salas
+          </Link>
+        )}
 
         <div className="flex items-center gap-3 pl-4 border-l border-gray-300">
-          {isAuthenticated ? (
-            <>
-              <Link
-                to="/profile"
-                className="text-sm font-semibold text-gray-800 hover:text-indigo-600"
-              >
-                {user?.nome}
-              </Link>
-              <div className="h-10 w-10 rounded-full overflow-hidden">
-                <img
-                  src="/src/assets/perfil.png"
-                  alt="perfil"
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            </>
+          {isAuthenticated && user ? (
+            <Link
+              to="/profile"
+              className="text-sm font-semibold text-gray-800 hover:text-indigo-600 flex flex-row gap-2 items-center"
+            >
+              {user.nome}
+              <CgProfile size={28} />
+            </Link>
           ) : (
             <Link
               to="/login"
