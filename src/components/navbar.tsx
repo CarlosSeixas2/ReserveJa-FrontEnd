@@ -13,13 +13,17 @@ const Navbar = () => {
 
       <nav className="flex gap-6 items-center text-sm font-medium text-gray-700">
         {isAuthenticated && (
-          <Link to="#" className="hover:text-indigo-600 transition">
+          <Link to="/my-reserves" className="hover:text-indigo-600 transition">
             Reservas
           </Link>
         )}
 
         {isAuthenticated && user?.tipo === "Professor" && (
-          <Link to="#" className="hover:text-indigo-600 transition">
+          <Link
+            to="#"
+            className="hover:text-indigo-600 transition"
+            onClick={() => alert("Funcionalidade em desenvolvimento")}
+          >
             Liberar Salas
           </Link>
         )}

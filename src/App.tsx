@@ -7,6 +7,7 @@ import Home from "./pages/home";
 import ReserveDetails from "./pages/reserve-details";
 import SolicitationDetails from "./pages/solicitation-details";
 import Profile from "./pages/profile";
+import Myreserves from "./pages/my-reserves";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
       <Route path="/reserva/:classroomId" element={<ReserveDetails />} />
       <Route path="/solicitar/:classroomId" element={<SolicitationDetails />} />
       <Route path="/profile" element={<Profile />} />
+      <Route path="/my-reserves" element={<Myreserves />} />
       <Route path="*" element={<Notfound />} />
     </Routes>
   );

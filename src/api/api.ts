@@ -172,3 +172,21 @@ export const SendSolicitation = async (
     console.log("Erro ao enviar solicitação:", error);
   }
 };
+
+export const FetchReserveById = async (
+  id: string,
+  request: ReturnType<typeof useApi>["request"]
+) => {
+  try {
+    const data = await request(`${URL_BASE}/reserve/user/${id}`, {
+      method: "GET",
+      headers: {
+        authorization: "Bearer " + localStorage.getItem("token"),
+      },
+    });
+
+    return data;
+  } catch (error) {
+    console.log("Erro ao buscar reserva:", error);
+  }
+};
