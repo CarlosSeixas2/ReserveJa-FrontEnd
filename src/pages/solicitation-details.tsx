@@ -1,7 +1,12 @@
-import { useParams } from "react-router-dom";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import { useApi } from "../hook/useApi";
-import { FetchByIdGroupByRoom, FetchClassroomById } from "../api/api";
+import {
+  FetchByIdRoom,
+  FetchClassroomById,
+  SendSolicitation,
+} from "../api/api";
 import { SalasProps } from "../interfaces";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -13,6 +18,8 @@ const SolicitationDetails = () => {
   const { classroomId } = useParams();
   const { error, loading, request } = useApi();
 
+  const navigate = useNavigate();
+
   const [classroom, setClassroom] = useState<SalasProps | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     new Date()
@@ -20,7 +27,7 @@ const SolicitationDetails = () => {
   const [selectedTimes, setSelectedTimes] = useState<string[]>([]);
   const [showCalendar, setShowCalendar] = useState(false);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
-  const [reason, setReason] = useState<string>(""); // Motivo
+  const [reason, setReason] = useState<string>("");
   const calendarRef = useRef<HTMLDivElement>(null);
 
   const toggleTimeSelection = (time: string) => {
@@ -33,13 +40,17 @@ const SolicitationDetails = () => {
     const fetchData = async () => {
       try {
         const sala = await FetchClassroomById(classroomId as string, request);
+
         if (sala) setClassroom(sala);
 
-        const horarios = await FetchByIdGroupByRoom(classroomId as string);
+        const horarios = await FetchByIdRoom(classroomId as string, request);
+
         const timesSet = new Set<string>();
+
         horarios[0].horarios.forEach((time: any) => {
-          timesSet.add(`${time.inicio}-${time.fim}`);
+          timesSet.add(time);
         });
+
         setAvailableTimes(Array.from(timesSet));
       } catch (err) {
         console.error("Erro ao buscar dados da sala:", err);
@@ -61,23 +72,43 @@ const SolicitationDetails = () => {
     return () => document.removeEventListener("mousedown", closeCalendar);
   }, []);
 
-  const handleRequestSubmit = () => {
-    if (!selectedDate || selectedTimes.length === 0 || !reason) {
+  const handleRequestSubmit = async () => {
+    if (
+      !selectedDate ||
+      selectedTimes.length === 0 ||
+      !reason ||
+      !classroomId
+    ) {
       alert("Por favor, preencha todos os campos antes de enviar.");
       return;
     }
-    alert(
-      `Solicitação realizada com sucesso! \nMotivo: ${reason}\nReserva para ${format(
-        selectedDate!,
-        "dd/MM/yyyy"
-      )} nos horários: ${selectedTimes.join(", ")}`
-    );
+
+    try {
+      await SendSolicitation(
+        classroomId,
+        selectedDate.toISOString(),
+        reason,
+        selectedTimes,
+        request
+      );
+
+      alert("Solicitação enviada com sucesso!");
+      navigate({
+        pathname: "/",
+      });
+    } catch (error) {
+      console.error("Erro ao enviar solicitação:", error);
+    }
   };
 
   if (loading)
     return (
-      <p className="text-center text-gray-500 mt-10">Carregando sala...</p>
+      <div className="flex flex-col items-center justify-center gap-2 mb-8">
+        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-gray-600 text-sm">Carregando salas...</p>
+      </div>
     );
+
   if (error)
     return (
       <p className="text-center text-red-500 mt-10">Erro ao carregar sala.</p>
@@ -122,6 +153,9 @@ const SolicitationDetails = () => {
                       setSelectedDate(date);
                       setShowCalendar(false);
                     }}
+                    disabled={{
+                      before: new Date(),
+                    }}
                     locale={ptBR}
                     styles={{
                       caption: { color: "#2563eb", fontWeight: "bold" },
@@ -136,7 +170,6 @@ const SolicitationDetails = () => {
             </div>
           </div>
 
-          {/* Motivo da solicitação */}
           <div className="mb-6">
             <label className="block text-lg font-medium text-gray-700 mb-2">
               Motivo da Solicitação
@@ -149,25 +182,20 @@ const SolicitationDetails = () => {
             />
           </div>
 
-          <div className="mb-6">
-            <label className="block text-lg font-medium text-gray-700 mb-3">
-              Horários disponíveis
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {availableTimes.map((time) => (
-                <button
-                  key={time}
-                  onClick={() => toggleTimeSelection(time)}
-                  className={`px-4 py-2 rounded-lg text-sm border transition duration-150 ${
-                    selectedTimes.includes(time)
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-                  }`}
-                >
-                  {time}
-                </button>
-              ))}
-            </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {availableTimes.map((time: any) => (
+              <button
+                key={time.horarioSalaId}
+                onClick={() => toggleTimeSelection(time.horarioSalaId)}
+                className={`px-4 py-2 rounded-lg text-sm border transition duration-150 ${
+                  selectedTimes.includes(time.horarioSalaId)
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                }`}
+              >
+                {time.inicio} - {time.fim}
+              </button>
+            ))}
           </div>
 
           <button

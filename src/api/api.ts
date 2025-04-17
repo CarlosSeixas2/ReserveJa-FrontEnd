@@ -128,19 +128,17 @@ export const FetchReserveClassroom = async (
   }
 };
 
-export const FetchAllReservesInDate = async (id: string, date: string) => {
+export const FetchByIdRoom = async (
+  id: string,
+  request: ReturnType<typeof useApi>["request"]
+) => {
   try {
-    const response = await fetch(
-      `${URL_BASE}/reserve/search-from-date/${id}/${date}`,
-      {
-        method: "GET",
-        headers: {
-          authorization: "Bearer " + localStorage.getItem("token"),
-        },
-      }
-    );
-
-    const data = await response.json();
+    const data = await request(`${URL_BASE}/time-class/by-room/${id}`, {
+      method: "GET",
+      headers: {
+        authorization: "Bearer " + localStorage.getItem("token"),
+      },
+    });
 
     return data;
   } catch (error) {
@@ -148,19 +146,29 @@ export const FetchAllReservesInDate = async (id: string, date: string) => {
   }
 };
 
-export const FetchByIdGroupByRoom = async (id: string) => {
+export const SendSolicitation = async (
+  roomId: string,
+  date: string,
+  reason: string,
+  times: string[],
+  request: ReturnType<typeof useApi>["request"]
+) => {
   try {
-    const response = await fetch(`${URL_BASE}/time-class/by-room/${id}`, {
-      method: "GET",
+    const data = await request(`${URL_BASE}/solicitation`, {
+      method: "POST",
       headers: {
         authorization: "Bearer " + localStorage.getItem("token"),
       },
+      body: {
+        roomId,
+        reason,
+        date,
+        times,
+      },
     });
-
-    const data = await response.json();
 
     return data;
   } catch (error) {
-    console.log("Erro ao buscar reservas:", error);
+    console.log("Erro ao enviar solicitação:", error);
   }
 };

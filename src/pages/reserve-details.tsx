@@ -1,7 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useParams } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import { useApi } from "../hook/useApi";
-import { FetchByIdGroupByRoom, FetchClassroomById } from "../api/api";
+import { FetchByIdRoom, FetchClassroomById } from "../api/api";
 import { SalasProps } from "../interfaces";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -34,7 +35,7 @@ const ReserveDetails = () => {
         const sala = await FetchClassroomById(classroomId as string, request);
         if (sala) setClassroom(sala);
 
-        const horarios = await FetchByIdGroupByRoom(classroomId as string);
+        const horarios = await FetchByIdRoom(classroomId as string, request);
         const timesSet = new Set<string>();
         horarios[0].horarios.forEach((time: any) => {
           timesSet.add(`${time.inicio}-${time.fim}`);
@@ -62,12 +63,20 @@ const ReserveDetails = () => {
 
   if (loading)
     return (
-      <p className="text-center text-gray-500 mt-10">Carregando sala...</p>
+      <div className="flex flex-col items-center justify-center gap-2 mb-8">
+        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-gray-600 text-sm">Carregando sala...</p>
+      </div>
     );
+
   if (error)
     return (
-      <p className="text-center text-red-500 mt-10">Erro ao carregar sala.</p>
+      <p className="text-center text-red-500 text-sm mb-8">
+        Ocorreu um erro ao carregar as salas. Por favor, tente novamente mais
+        tarde.
+      </p>
     );
+
   if (!classroom) return null;
 
   return (
