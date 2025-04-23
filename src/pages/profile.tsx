@@ -29,7 +29,7 @@ const Profile = () => {
           <section className="space-y-6 text-base text-gray-700 mb-10">
             <InfoRow label="Nome" value={user?.nome} />
             <InfoRow label="Email" value={user?.email} />
-            <InfoRow label="Tipo" value={user?.tipo} />
+            <InfoRow label="Cargo" value={user?.tipo} />
           </section>
 
           <div className="flex flex-col sm:flex-row sm:justify-between gap-4">

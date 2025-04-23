@@ -155,6 +155,10 @@ const SolicitationDetails = () => {
                     }}
                     disabled={{
                       before: new Date(),
+                      after: new Date(
+                        new Date().setDate(new Date().getDate() + 6)
+                      ),
+                      dayOfWeek: [0, 6],
                     }}
                     locale={ptBR}
                     styles={{

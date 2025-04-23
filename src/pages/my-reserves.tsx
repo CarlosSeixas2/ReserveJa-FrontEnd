@@ -17,7 +17,7 @@ import { useApi } from "../hook/useApi";
 
 const Myreserves = () => {
   const { user } = useAuth();
-  const { request } = useApi();
+  const { error, loading, request } = useApi();
   const [reserves, setReserves] = useState<any[]>([]);
 
   useEffect(() => {
@@ -31,6 +31,29 @@ const Myreserves = () => {
 
     fetchData();
   }, [user]);
+
+  if (loading)
+    return (
+      <div className="flex flex-col items-center justify-center gap-2 mb-8">
+        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-gray-600 text-sm">Carregando reservas...</p>
+      </div>
+    );
+
+  if (error)
+    return (
+      <p className="text-center text-red-500 text-sm mb-8">
+        Ocorreu um erro ao carregar as reservas. Por favor, tente novamente mais
+        tarde.
+      </p>
+    );
+
+  if (!reserves.length)
+    return (
+      <div className="flex flex-col items-center justify-center gap-2 mb-8">
+        <p className="text-gray-600 text-sm">Nenhuma reserva encontrada.</p>
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-gradient-to-br px-4 py-8">

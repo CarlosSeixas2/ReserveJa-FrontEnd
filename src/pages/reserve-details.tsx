@@ -1,14 +1,20 @@
-/* eslint-disable react-hooks/exhaustive-deps */
+"use client";
+
 import { useParams } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import { useApi } from "../hook/useApi";
 import { FetchByIdRoom, FetchClassroomById } from "../api/api";
-import { SalasProps } from "../interfaces";
+import type { SalasProps } from "../interfaces";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import Navbar from "../components/navbar";
+import {
+  showToast,
+  ToastContainerComponent,
+} from "../utils/toast-notification";
+import "react-toastify/dist/ReactToastify.css";
 
 const ReserveDetails = () => {
   const { classroomId } = useParams();
@@ -22,6 +28,7 @@ const ReserveDetails = () => {
   const [showCalendar, setShowCalendar] = useState(false);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const calendarRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const toggleTimeSelection = (time: string) => {
     setSelectedTimes((prev) =>
@@ -43,6 +50,7 @@ const ReserveDetails = () => {
         setAvailableTimes(Array.from(timesSet));
       } catch (err) {
         console.error("Erro ao buscar dados da sala:", err);
+        showToast("Erro ao carregar dados da sala", "error");
       }
     };
     fetchData();
@@ -52,7 +60,9 @@ const ReserveDetails = () => {
     const closeCalendar = (event: MouseEvent) => {
       if (
         calendarRef.current &&
-        !calendarRef.current.contains(event.target as Node)
+        !calendarRef.current.contains(event.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
       ) {
         setShowCalendar(false);
       }
@@ -60,6 +70,14 @@ const ReserveDetails = () => {
     document.addEventListener("mousedown", closeCalendar);
     return () => document.removeEventListener("mousedown", closeCalendar);
   }, []);
+
+  const handleReservation = () => {
+    if (!selectedDate || selectedTimes.length === 0) return;
+
+    showToast(`Reserva realizada com sucesso`, "success");
+
+    setSelectedTimes([]);
+  };
 
   if (loading)
     return (
@@ -82,7 +100,9 @@ const ReserveDetails = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100 px-4 py-8">
       <Navbar />
-      <div className="max-w-3xl mx-auto bg-white shadow-xl rounded-2xl overflow-hidden">
+      <ToastContainerComponent />
+
+      <div className="max-w-3xl mx-auto bg-white shadow-xl rounded-2xl">
         <img
           src="/src/assets/sala.jpeg"
           alt={classroom.nome}
@@ -92,29 +112,51 @@ const ReserveDetails = () => {
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
             {classroom.nome}
           </h1>
+
           <p className="text-gray-500 mb-6">
             Capacidade: {classroom.capacidade}
           </p>
 
-          <div ref={calendarRef} className="mb-6">
+          <div className="mb-6">
             <label className="block text-lg font-medium text-gray-700 mb-2">
               Selecione uma data
             </label>
             <div className="relative">
               <input
+                ref={inputRef}
                 readOnly
                 value={selectedDate ? format(selectedDate, "dd/MM/yyyy") : ""}
                 onClick={() => setShowCalendar(!showCalendar)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 cursor-pointer"
               />
               {showCalendar && (
-                <div className="absolute z-30 bg-white shadow-md border rounded-md mt-2 p-2">
+                <div
+                  ref={calendarRef}
+                  className="fixed z-50 bg-white shadow-lg border rounded-lg mt-2 p-2"
+                  style={{
+                    top: inputRef.current
+                      ? inputRef.current.getBoundingClientRect().bottom +
+                        window.scrollY
+                      : "auto",
+                    left: inputRef.current
+                      ? inputRef.current.getBoundingClientRect().left +
+                        window.scrollX
+                      : "auto",
+                  }}
+                >
                   <DayPicker
                     mode="single"
                     selected={selectedDate}
                     onSelect={(date) => {
                       setSelectedDate(date);
                       setShowCalendar(false);
+                    }}
+                    disabled={{
+                      before: new Date(),
+                      after: new Date(
+                        new Date().setDate(new Date().getDate() + 6)
+                      ),
+                      dayOfWeek: [0, 6],
                     }}
                     locale={ptBR}
                     styles={{
@@ -153,14 +195,7 @@ const ReserveDetails = () => {
 
           <button
             disabled={!selectedDate || selectedTimes.length === 0}
-            onClick={() =>
-              alert(
-                `Reservado para ${format(
-                  selectedDate!,
-                  "dd/MM/yyyy"
-                )} nos horários:\n${selectedTimes.join(", ")}`
-              )
-            }
+            onClick={handleReservation}
             className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Reservar
